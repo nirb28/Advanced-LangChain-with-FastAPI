@@ -7,12 +7,9 @@ from langchain_core.documents import Document
 from langchain_core.runnables.config import run_in_executor
 from sqlalchemy.orm import Session
 
-
 class ExtendedPgVector(PGVector):
 
     def get_all_ids(self) -> list[str]:
-        time.sleep(5)
-
         with Session(self._bind) as session:
             results = session.query(self.EmbeddingStore.custom_id).all()
             return [result[0] for result in results if result[0] is not None]
@@ -35,7 +32,6 @@ class ExtendedPgVector(PGVector):
 class AsnyPgVector(ExtendedPgVector):
 
     async def get_all_ids(self) -> list[str]:
-        await asyncio.sleep(5)
         return await run_in_executor(None, super().get_all_ids)
 
     async def get_documents_by_ids(self, ids: list[str]) -> list[Document]:

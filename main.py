@@ -6,7 +6,8 @@ from langchain.schema import Document
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_groq import ChatGroq
+from langchain_openai import OpenAIEmbeddings
 
 from models import DocumentModel, DocumentResponse
 from store import AsnyPgVector
@@ -15,7 +16,6 @@ from store_factory import get_vector_store
 load_dotenv(find_dotenv())
 
 app = FastAPI()
-
 
 def get_env_variable(var_name: str) -> str:
     value = os.getenv(var_name)
@@ -38,6 +38,13 @@ try:
     CONNECTION_STRING = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}:{DB_PORT}/{POSTGRES_DB}"
 
     OPENAI_API_KEY = get_env_variable("OPENAI_API_KEY")
+    GROQ_API_KEY = get_env_variable("GROQ_API_KEY")
+    
+    # Set API keys in environment variables to ensure they're properly picked up
+    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+    os.environ["GROQ_API_KEY"] = GROQ_API_KEY
+    
+    # Use OpenAI for embeddings
     embeddings = OpenAIEmbeddings()
 
     mode = "async" if USE_ASYNC else "sync"
@@ -54,7 +61,13 @@ try:
     Question: {question}
     """
     prompt = ChatPromptTemplate.from_template(template)
-    model = ChatOpenAI(model_name="gpt-3.5-turbo")
+    
+    # Use Groq for the LLM
+    model = ChatGroq(
+        api_key=GROQ_API_KEY,
+        model_name="llama3-70b-8192"
+    )
+    
     chain = (
         {"context": retriever, "question": RunnablePassthrough()}
         | prompt

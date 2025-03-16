@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langchain
+langchain_community
+langchain_openai
+python_dotenv
+pydantic
+openai
+tiktoken
+SQLAlchemy
